@@ -1,6 +1,6 @@
 import subprocess
 import os
-import request 
+import requests 
 import json 
 #date
 status, date = subprocess.getstatusoutput("date '+%G/%m/%d %H:%M'")
@@ -44,4 +44,29 @@ with open(logpath, 'a+') as file:
     file.write('LOG_DATE:'+date+' | CPU_USAGE:'+cpu_usage+' | CONN_NUMBER:'+connection+' | DISK_USAGE:'+disk_usage+' | MEM_USAGE:'+mem_usage + '\n')
 
 
+# send to slack cpu , mem , disk usageusage
 
+slack_token = "xoxb..."
+channel_id = "C084..."
+
+headers = {
+    "Authorization": "Bearer " + slack_token,
+    "Content-Type": "application/json"
+}
+
+cpu_value = float(cpu_usage.replace('%', ''))
+mem_value = float(mem_usage.split('%')[0])
+disk_value = float(disk_usage.split('%')[0])
+message = f""" 
+               date : {date},
+               cpu_usage : {cpu_usage},
+               connection : {connection},
+               disk_usage: {disk_usage},
+               mem_usage: {mem_usage}
+"""
+payload = {
+        "channel": channel_id,
+        "text" : message
+    }
+if cpu_value >= 80 or int(connection) > 5000 or disk_value > 90 or mem_value > 80 :
+        response = requests.post("https://slack.com/api/chat.postMessage", headers = headers, data = json.dumps(payload))
